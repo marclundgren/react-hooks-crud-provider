@@ -10,10 +10,11 @@ export const fetchPosts = (url) => axios.get(url);
 export const removePost = (url) => axios.delete(url);
 export const createPost = (url, body) => axios.post(url, body);
 export const updatePost = (url, body) => axios.get(url, body);
+export const dataProvider = () => fetchPosts(baseURL);
 
 const defaultProps = {
-  dataProvider: () => fetchPosts(baseURL)
-  // what about remove, create, update?
+  dataProvider,
+  // @todo what about remove, create, update?
 };
 
 export default function usePosts(props) {
@@ -23,51 +24,63 @@ export default function usePosts(props) {
 
   const { dataProvider } = { ...defaultProps, ...props };
 
-  function reload() {
+  async function reload() {
+    setLoading(true);
+    await delay(1500);
     setCached(null);
+    setLoading(false);
   }
 
-  function add(post) {
+  async function add(post) {
+    setLoading(true);
+    await delay(1000);
     setPosts([post, ...posts]);
+    setLoading(false);
   }
 
-  function update({ id, title, body }) {
-    updatePost(`${baseURL}/${id}`, {
+  async function update({ id, title, body }) {
+    setLoading(true);
+    await delay(1000);
+
+    const response = await updatePost(`${baseURL}/${id}`, {
       title,
-      body
-    }).then((response) => {
-      setPosts(
-        posts.map((p) => {
-          if (p.id === id) {
-            return {
-              ...p,
-              ...response,
-              title,
-              body
-            };
-          }
-          return p;
-        })
-      );
+      body,
     });
+    setPosts(
+      posts.map((p) => {
+        if (p.id === id) {
+          return {
+            ...p,
+            ...response,
+            title,
+            body,
+          };
+        }
+        return p;
+      })
+    );
+    setLoading(false);
   }
 
-  function remove({ id }) {
-    removePost(`${baseURL}/${id}`).then(async () => {
-      setPosts(
-        posts.map((p) => {
-          if (p.id === id) {
-            return {
-              ...p,
-              removing: true
-            };
-          }
-          return p;
-        })
-      );
-      await delay(1000);
-      setPosts(posts.filter((p) => p.id !== id));
-    });
+  async function remove({ id }) {
+    setLoading(true);
+    await delay(1000);
+
+    await removePost(`${baseURL}/${id}`);
+    setPosts(
+      posts.map((p) => {
+        if (p.id === id) {
+          return {
+            ...p,
+            removing: true,
+          };
+        }
+        return p;
+      })
+    );
+    await delay(1000);
+    setPosts(posts.filter((p) => p.id !== id));
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -77,19 +90,28 @@ export default function usePosts(props) {
       setLoading(true);
       dataProvider().then((response) => {
         const { data } = response;
-        setCached(data.reverse());
-        setPosts(data.reverse());
+
+        /*
+        @todo consider a middleware that handles the response
+        */
+        const reveresedPosts = data.reverse(); // posts are sorted by time desc
+
+        setCached(reveresedPosts);
+        setPosts(reveresedPosts);
         setLoading(false);
       });
+
+      // @todo abort on error
+      // return () => abort();
     }
   }, [dataProvider, cached]);
 
   return {
-    posts,
-    add,
-    update,
-    remove,
-    loading,
-    reload
+    posts, // data
+    loading, // state
+    add, // action
+    update, // action
+    remove, // action
+    reload, // action
   };
 }

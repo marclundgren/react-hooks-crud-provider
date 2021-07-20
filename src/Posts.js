@@ -1,17 +1,19 @@
-import usePosts, { fetchPosts } from "./usePosts";
+import usePosts, { dataProvider } from "./usePosts";
 import CreatePost from "./CreatePost";
 import Post from "./Post";
 
 const defaultProps = {
-  dataProvider: fetchPosts
+  // @todo avoid drilling this prop
+  dataProvider,
 };
 
 export default function Posts(props) {
   const { dataProvider } = { ...defaultProps, ...props };
   const { posts, add, update, remove, reload, loading } = usePosts({
     // this is prop-drilling
-    dataProvider
+    dataProvider,
   });
+
   return (
     <>
       <CreatePost onSuccess={(response) => add(response.data)} />

@@ -4,7 +4,7 @@ import { baseURL, createPost } from "./usePosts";
 import "./CreatePost.css";
 
 const defaultProps = {
-  onSuccess: () => {}
+  onSuccess: () => {},
 };
 
 export default function CreatePost(props) {
@@ -20,7 +20,7 @@ export default function CreatePost(props) {
 
     createPost(baseURL, {
       title,
-      body
+      body,
     })
       .then(onSuccess)
       .finally(() => {
