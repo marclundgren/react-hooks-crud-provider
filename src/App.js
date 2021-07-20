@@ -4,24 +4,28 @@ import Posts from "./Posts";
 import TestPosts from "./TestPosts";
 
 export default function App() {
-  const [testMode, setTestMode] = useState(false);
+  const [dataSelection, setDataSelection] = useState("live");
 
   return (
     <div className="App">
       <h1>Hello Posts</h1>
 
-      <label>
-        <input
-          type="checkbox"
-          value={testMode}
-          onChange={() => setTestMode(!testMode)}
-        />
-        Test Mode
-      </label>
+      <select
+        value={dataSelection}
+        onChange={(e) => setDataSelection(e.target.value)}
+      >
+        <option value="live">Live Data</option>
+        <option value="test-provider">Test Mode (Data Provider pattern)</option>
+        <option value="test-context">
+          Test Mode (Context API) coming soon
+        </option>
+      </select>
 
-      {!testMode && <Posts />}
+      {dataSelection === "live" && <Posts />}
 
-      {testMode && <TestPosts />}
+      {dataSelection === "test-provider" && <TestPosts />}
+
+      {dataSelection === "test-context" && <p> coming soon </p>}
     </div>
   );
 }
